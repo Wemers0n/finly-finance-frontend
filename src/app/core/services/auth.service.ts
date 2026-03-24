@@ -16,6 +16,7 @@ export class AuthService {
       tap(response => {
         if (response.token && typeof localStorage !== 'undefined') {
           localStorage.setItem('token', response.token.toString());
+          localStorage.removeItem('selectedAccountId'); // Limpa qualquer conta anterior
         }
       })
     );
@@ -26,6 +27,7 @@ export class AuthService {
       tap(response => {
         if (response.token && typeof localStorage !== 'undefined') {
           localStorage.setItem('token', response.token.toString());
+          localStorage.removeItem('selectedAccountId'); // Limpa qualquer conta anterior
         }
       })
     );
@@ -34,6 +36,7 @@ export class AuthService {
   logout(): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('token');
+      localStorage.removeItem('selectedAccountId');
     }
   }
 

@@ -1,26 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { MonthlyTransactionSummaryOutput } from '../models/transaction.model';
 
-export interface TransactionItem {
-  transactionId: string;
-  date: string;
-  value: number;
-  category: string;
-  type: string;
-  origin: string;
-}
-
-export interface MonthlyTransactionSummaryOutput {
-  accountId: string;
-  referenceMonth: string;
-  totalDebits: number;
-  totalCredits: number;
-  totalTransactionsBank: number;
-  totalTransactionsCard: number;
-  monthlyBalance: number;
-  transactions: TransactionItem[];
-}
 
 @Injectable({
   providedIn: 'root'

@@ -35,7 +35,7 @@ export class AccountCreationComponent {
       this.error = null;
       this.accountService.createAccount(this.accountForm.value).subscribe({
         next: () => {
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/account-selection']);
         },
         error: (err) => {
           this.error = 'Ocorreu um erro ao criar sua conta bancária. Tente novamente.';
