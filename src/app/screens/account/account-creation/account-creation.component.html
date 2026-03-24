@@ -1,0 +1,42 @@
+<div class="account-setup-container">
+  <div class="account-setup-card">
+    <div class="card-header">
+      <h2>Criar Conta Bancária</h2>
+      <p>Configure sua primeira conta para começar a gerenciar suas finanças.</p>
+    </div>
+
+    <form [formGroup]="accountForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="accountName">Nome da Conta</label>
+        <input type="text" id="accountName" formControlName="accountName" placeholder="Ex: Conta Principal, Reserva..." />
+        <div class="error-message" *ngIf="accountForm.get('accountName')?.invalid && accountForm.get('accountName')?.touched">
+          Nome da conta é obrigatório (máx 100 caracteres).
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="accountType">Tipo de Conta</label>
+        <select id="accountType" formControlName="accountType">
+          <option value="">Selecione o tipo de conta...</option>
+          <option *ngFor="let type of accountTypes" [value]="type">
+            {{ getAccountTypeLabel(type) }}
+          </option>
+        </select>
+        <div class="error-message" *ngIf="accountForm.get('accountType')?.invalid && accountForm.get('accountType')?.touched">
+          Selecione um tipo de conta.
+        </div>
+      </div>
+
+      <div class="error-alert" *ngIf="error">
+        {{ error }}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="accountForm.invalid || loading">
+          <span *ngIf="!loading">Criar Conta</span>
+          <span *ngIf="loading" class="loader"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

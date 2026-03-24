@@ -1,0 +1,210 @@
+.selection-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 1.5rem;
+}
+
+.selection-card {
+  background-color: var(--card-bg);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  padding: 3rem;
+  width: 100%;
+  max-width: 640px;
+  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selection-header {
+  text-align: center;
+  margin-bottom: 3rem;
+
+  h1 {
+    color: var(--secondary-color);
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.05em;
+  }
+
+  p {
+    color: var(--text-muted);
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+}
+
+.loading-state, .error-state, .no-accounts-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  animation: fadeIn 0.4s ease;
+}
+
+.no-accounts-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  
+  p {
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+}
+
+.spinner {
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.accounts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.account-item {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: #f8fafc;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  gap: 1.5rem;
+
+  &:hover {
+    border-color: var(--primary-color);
+    background-color: #ffffff;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px -5px rgba(56, 189, 248, 0.2);
+
+    .select-arrow {
+      color: var(--primary-color);
+      transform: translateX(4px);
+    }
+  }
+
+  .account-icon {
+    font-size: 1.75rem;
+    color: var(--primary-color);
+    background-color: #e0f2fe;
+    width: 4rem;
+    height: 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1rem;
+    transition: all var(--transition-fast);
+  }
+
+  .account-info {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 0.25rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--secondary-color);
+    }
+
+    p {
+      margin: 0 0 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      font-weight: 500;
+    }
+
+    .balance {
+      font-weight: 800;
+      color: var(--success-color);
+      font-size: 1.125rem;
+    }
+  }
+
+  .select-arrow {
+    color: var(--text-light);
+    font-size: 1.5rem;
+    transition: all var(--transition-fast);
+  }
+}
+
+.btn-add-account {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: transparent;
+  border: 2px dashed var(--border-color);
+  border-radius: 1rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-top: 0.75rem;
+
+  &:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: #f0f9ff;
+  }
+}
+
+.btn-retry {
+  margin-top: 1.5rem;
+  padding: 0.75rem 2rem;
+  background-color: var(--secondary-color);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #334155;
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .selection-card {
+    padding: 2rem 1.5rem;
+    border-radius: 1rem;
+  }
+
+  .selection-header {
+    h1 { font-size: 1.75rem; }
+    p { font-size: 1rem; }
+  }
+
+  .account-item {
+    padding: 1.25rem;
+    gap: 1rem;
+
+    .account-icon {
+      width: 3.5rem;
+      height: 3.5rem;
+      font-size: 1.5rem;
+    }
+
+    .account-info {
+      h3 { font-size: 1.125rem; }
+      .balance { font-size: 1rem; }
+    }
+  }
+}
