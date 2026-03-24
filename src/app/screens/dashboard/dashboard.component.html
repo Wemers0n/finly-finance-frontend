@@ -3,7 +3,7 @@
   <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
     <div class="sidebar-header">
       <div class="logo">
-        <img src="/assets/logo.svg" alt="Finly Logo" class="sidebar-logo" *ngIf="!isSidebarCollapsed">
+        <img src="/assets/logo-finly.png" alt="Finly Logo" class="sidebar-logo" *ngIf="!isSidebarCollapsed">
         <span class="logo-icon" *ngIf="isSidebarCollapsed">F</span>
       </div>
       <button class="toggle-btn" (click)="toggleSidebar()">
@@ -13,8 +13,8 @@
     
     <nav>
       <ul>
-        <li class="active">
-          <a routerLink="/dashboard" data-label="Dashboard">
+        <li>
+          <a routerLink="/dashboard" routerLinkActive="active" data-label="Dashboard">
             <i class="bi bi-speedometer2"></i>
             <span *ngIf="!isSidebarCollapsed">Dashboard</span>
           </a>
@@ -26,7 +26,13 @@
           </a>
         </li>
         <li>
-          <a href="#" data-label="Transações">
+          <a routerLink="/categories" routerLinkActive="active" data-label="Categorias">
+            <i class="bi bi-tags"></i>
+            <span *ngIf="!isSidebarCollapsed">Categorias</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/transactions" routerLinkActive="active" data-label="Transações">
             <i class="bi bi-arrow-left-right"></i>
             <span *ngIf="!isSidebarCollapsed">Transações</span>
           </a>
@@ -113,22 +119,27 @@
         <section class="recent-transactions">
           <div class="section-header">
             <h3>Transações Recentes</h3>
-            <a href="#" class="view-all">Ver todas</a>
+            <a routerLink="/transactions" class="view-all">Ver todas</a>
           </div>
           <div class="transaction-list">
             <div *ngIf="recentTransactions.length === 0" class="no-data">
               Nenhuma transação encontrada este mês.
             </div>
             <div *ngFor="let t of recentTransactions" class="transaction-item">
-              <div class="transaction-info">
-                <span class="description">{{ t.type }}</span>
-                <span class="category">{{ t.category }}</span>
+              <div class="tx-main">
+                <div class="tx-icon" [ngClass]="t.type.toLowerCase()">
+                  <i class="bi" [ngClass]="getTransactionIcon(t.type)"></i>
+                </div>
+                <div class="tx-info">
+                  <span class="description">{{ t.type }}</span>
+                  <span class="category">{{ t.category }}</span>
+                </div>
               </div>
               <div class="transaction-amount-date">
-                <span class="amount" [ngClass]="{'text-danger': t.origin === 'DEBIT', 'text-success': t.origin === 'CREDIT'}">
-                  {{ t.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                <span class="amount" [ngClass]="t.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
+                  {{ (t.type === 'DEPOSIT' ? '' : '-') + (t.value | currency:'BRL':'symbol':'1.2-2':'pt-BR') }}
                 </span>
-                <span class="date">{{ t.date | date: 'shortDate' }}</span>
+                <span class="date">{{ t.date | date: 'dd/MM/yy' }}</span>
               </div>
             </div>
           </div>
@@ -140,9 +151,9 @@
             <h3>Ações Rápidas</h3>
           </div>
           <div class="action-buttons">
-            <button class="action-btn">Nova Transferência</button>
+            <button class="action-btn" routerLink="/transactions">Nova Transação</button>
             <button class="action-btn">Meus Cartões</button>
-            <button class="action-btn">Categorias</button>
+            <button class="action-btn" routerLink="/categories">Categorias</button>
           </div>
         </section>
       </div>

@@ -166,12 +166,12 @@
             background-color: rgba(255, 255, 255, 0.05);
             color: #ffffff;
           }
-        }
 
-        &.active a {
-          background-color: var(--primary-color);
-          color: #ffffff;
-          box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+          &.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+          }
         }
       }
     }
@@ -330,34 +330,57 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.25rem;
-    background-color: #f8fafc;
-    border-radius: 1rem;
-    transition: all var(--transition-fast);
+    padding: 1.25rem 1.5rem;
+    background-color: #ffffff;
+    border-radius: 1.25rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
+    transition: all var(--transition-normal);
 
     &:hover {
-      background-color: #f1f5f9;
-      transform: scale(1.01);
+      transform: translateX(8px);
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-sm);
     }
 
-    .transaction-info {
+    .tx-main {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+
+      .tx-icon {
+        width: 3rem;
+        height: 3rem;
+        background-color: #f1f5f9;
+        color: var(--text-muted);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+
+        &.deposit { color: #10b981; background-color: rgba(16, 185, 129, 0.1); }
+        &.pix { color: #8b5cf6; background-color: rgba(139, 92, 246, 0.1); }
+        &.transfer { color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
+        &.credit_card { color: #f59e0b; background-color: rgba(245, 158, 11, 0.1); }
+      }
+    }
+
+    .tx-info {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-
+      
       .description {
         font-weight: 700;
+        color: var(--text-main);
         font-size: 1rem;
+        margin-bottom: 0.25rem;
       }
-
+      
       .category {
-        font-size: 0.75rem;
-        color: var(--primary-color);
-        font-weight: 700;
-        background: #f0f9ff;
-        padding: 0.25rem 0.75rem;
-        border-radius: 2rem;
-        width: fit-content;
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+        font-weight: 600;
       }
     }
 

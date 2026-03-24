@@ -4,7 +4,8 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AccountService } from '../../core/services/account.service';
 import { UserService, UserOutput } from '../../core/services/user.service';
-import { DashboardService, MonthlyTransactionSummaryOutput, TransactionItem } from '../../core/services/dashboard.service';
+import { DashboardService } from '../../core/services/dashboard.service';
+import { TransactionItem, MonthlyTransactionSummaryOutput } from '../../core/models/transaction.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -95,6 +96,16 @@ export class DashboardComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  getTransactionIcon(type: string): string {
+    switch (type) {
+      case 'PIX': return 'bi-lightning-fill';
+      case 'TRANSFER': return 'bi-arrow-left-right';
+      case 'DEPOSIT': return 'bi-cash-coin';
+      case 'CREDIT_CARD': return 'bi-credit-card-2-front-fill';
+      default: return 'bi-wallet2';
+    }
   }
 
   toggleSidebar(): void {
