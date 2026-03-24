@@ -1,0 +1,77 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <div class="logo-container">
+        <img src="/assets/logo-finly.png" alt="Finly Logo" class="main-logo">
+      </div>
+      <p>Crie sua conta e comece a poupar</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstname">Nome</label>
+          <input 
+            type="text" 
+            id="firstname" 
+            formControlName="firstname" 
+            placeholder="Seu nome"
+            [class.invalid]="registerForm.get('firstname')?.invalid && registerForm.get('firstname')?.touched"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="lastname">Sobrenome</label>
+          <input 
+            type="text" 
+            id="lastname" 
+            formControlName="lastname" 
+            placeholder="Seu sobrenome"
+            [class.invalid]="registerForm.get('lastname')?.invalid && registerForm.get('lastname')?.touched"
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input 
+          type="email" 
+          id="email" 
+          formControlName="email" 
+          placeholder="seu@email.com"
+          [class.invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+        >
+        <div class="error-msg" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+          E-mail inválido
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <input 
+          type="password" 
+          id="password" 
+          formControlName="password" 
+          placeholder="Mínimo de 6 caracteres"
+          [class.invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+        >
+        <div class="error-msg" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+          Senha deve ter no mínimo 6 caracteres
+        </div>
+      </div>
+
+      <div class="alert error" *ngIf="error">
+        {{ error }}
+      </div>
+
+      <button type="submit" [disabled]="registerForm.invalid || loading" class="btn-register">
+        {{ loading ? 'Criando conta...' : 'Registrar' }}
+      </button>
+    </form>
+
+    <div class="register-footer">
+      <span>Já tem uma conta? </span>
+      <a routerLink="/login">Faça o login</a>
+    </div>
+  </div>
+</div>
