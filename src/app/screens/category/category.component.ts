@@ -29,6 +29,8 @@ export class CategoryComponent implements OnInit {
   transactions: TransactionItem[] = [];
   
   showModal = false;
+  showDetailModal = false;
+  selectedCategory: CategoryItem | null = null;
   newCategoryName = '';
   isCreating = false;
 
@@ -137,6 +139,18 @@ export class CategoryComponent implements OnInit {
   closeModal(): void {
     this.showModal = false;
     this.newCategoryName = '';
+    this.cdr.detectChanges();
+  }
+
+  openDetailModal(category: CategoryItem): void {
+    this.selectedCategory = category;
+    this.showDetailModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeDetailModal(): void {
+    this.showDetailModal = false;
+    this.selectedCategory = null;
     this.cdr.detectChanges();
   }
 

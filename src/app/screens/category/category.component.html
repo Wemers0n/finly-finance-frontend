@@ -99,7 +99,7 @@
 
       <div class="categories-grid">
         <div class="category-group" *ngFor="let category of categories">
-          <div class="category-card">
+          <div class="category-card" (click)="openDetailModal(category)">
             <div class="category-info">
               <div class="category-icon">
                 <i class="bi bi-tag-fill"></i>
@@ -116,22 +116,6 @@
               <button class="icon-btn delete" title="Excluir">
                 <i class="bi bi-trash"></i>
               </button>
-            </div>
-          </div>
-          
-          <!-- Transactions for this category -->
-          <div class="category-transactions" *ngIf="getTransactionsByCategory(category.name).length > 0">
-            <div class="mini-transaction" *ngFor="let tx of getTransactionsByCategory(category.name).slice(0, 3)">
-              <div class="mini-tx-info">
-                <i class="bi" [ngClass]="getTransactionIcon(tx.type)"></i>
-                <span>{{ tx.description || tx.origin || 'Sem descrição' }}</span>
-              </div>
-              <span class="mini-tx-value" [ngClass]="tx.type === 'DEPOSIT' ? 'positive' : 'negative'">
-                {{ (tx.type === 'DEPOSIT' ? '' : '-') + (tx.value | currency:'BRL':'symbol':'1.2-2':'pt-BR') }}
-              </span>
-            </div>
-            <div class="more-link" *ngIf="getTransactionsByCategory(category.name).length > 3">
-              <a routerLink="/transactions">+ {{ getTransactionsByCategory(category.name).length - 3 }} mais</a>
             </div>
           </div>
         </div>
@@ -158,6 +142,63 @@
       <button class="save-btn" (click)="createCategory()" [disabled]="!newCategoryName.trim() || isCreating">
         {{ isCreating ? 'Salvando...' : 'Salvar' }}
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Detail Modal -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-info">
+        <div class="category-icon-large">
+          <i class="bi bi-tag-fill"></i>
+        </div>
+        <div>
+          <h3>{{ selectedCategory?.name }}</h3>
+          <p>Histórico de Transações</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeDetailModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="summary-info">
+        <div class="info-card">
+          <span>Total Gasto</span>
+          <strong>{{ selectedCategory?.totalSpent | currency:'BRL' }}</strong>
+        </div>
+        <div class="info-card">
+          <span>Transações</span>
+          <strong>{{ getTransactionsByCategory(selectedCategory?.name || '').length }}</strong>
+        </div>
+      </div>
+
+      <div class="transactions-list-container">
+        <div *ngIf="getTransactionsByCategory(selectedCategory?.name || '').length === 0" class="no-tx">
+          <i class="bi bi-inbox"></i>
+          <p>Nenhuma transação para esta categoria.</p>
+        </div>
+
+        <div class="transaction-item-detail" *ngFor="let tx of getTransactionsByCategory(selectedCategory?.name || '')">
+          <div class="tx-main-info">
+            <div class="tx-icon-small" [ngClass]="tx.type.toLowerCase()">
+              <i class="bi" [ngClass]="getTransactionIcon(tx.type)"></i>
+            </div>
+            <div class="tx-texts">
+              <span class="tx-desc">{{ tx.description || tx.origin || 'Sem descrição' }}</span>
+              <span class="tx-date">{{ tx.date | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+          <span class="tx-val" [ngClass]="tx.type === 'DEPOSIT' ? 'positive' : 'negative'">
+            {{ (tx.type === 'DEPOSIT' ? '' : '-') + (tx.value | currency:'BRL') }}
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="close-modal-btn" (click)="closeDetailModal()">Fechar</button>
     </div>
   </div>
 </div>
