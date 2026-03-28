@@ -38,9 +38,9 @@
           </a>
         </li>
         <li>
-          <a href="#" data-label="Relatórios">
-            <i class="bi bi-pie-chart"></i>
-            <span *ngIf="!isSidebarCollapsed">Relatórios</span>
+          <a routerLink="/cards" routerLinkActive="active" data-label="Cartões">
+            <i class="bi bi-credit-card"></i>
+            <span *ngIf="!isSidebarCollapsed">Meus Cartões</span>
           </a>
         </li>
         <li>
@@ -111,8 +111,8 @@
               <p class="tx-meta">{{ transaction.date | date: 'dd/MM/yyyy HH:mm' }} • {{ transaction.origin }}</p>
             </div>
           </div>
-          <div class="tx-value" [ngClass]="transaction.type === 'DEPOSIT' ? 'positive' : 'negative'">
-            {{ (transaction.type === 'DEPOSIT' ? '' : '-') + (transaction.value | currency:'BRL':'symbol':'1.2-2':'pt-BR') }}
+          <div class="tx-value" [ngClass]="transaction.operation === 'CREDIT' ? 'positive' : 'negative'">
+            {{ (transaction.operation === 'CREDIT' ? '' : '-') + (transaction.value | currency:'BRL':'symbol':'1.2-2':'pt-BR') }}
           </div>
         </div>
         
@@ -133,7 +133,18 @@
       <button class="close-btn" (click)="closeModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
+      <!-- Transaction Origin Toggle -->
+      <div class="origin-toggle">
+        <button [class.active]="transactionOrigin === 'BANK'" (click)="transactionOrigin = 'BANK'">
+          <i class="bi bi-bank"></i> Conta Bancária
+        </button>
+        <button [class.active]="transactionOrigin === 'CARD'" (click)="transactionOrigin = 'CARD'">
+          <i class="bi bi-credit-card"></i> Cartão de Crédito
+        </button>
+      </div>
+
+      <!-- Bank Transaction Form -->
+      <div class="form-grid" *ngIf="transactionOrigin === 'BANK'">
         <div class="form-group">
           <label>Valor</label>
           <div class="input-with-icon">
@@ -144,8 +155,9 @@
 
         <div class="form-group">
           <label>Operação</label>
-          <select [(ngModel)]="newTransaction.operation">
-            <option *ngFor="let op of operations" [value]="op">{{ op }}</option>
+          <select [(ngModel)]="newTransaction.operation" (change)="onOperationChange()">
+            <option value="CREDIT">Entrada (Depósito/Recebimento)</option>
+            <option value="DEBIT">Saída (Pagamento/Transferência)</option>
           </select>
         </div>
 
@@ -168,10 +180,55 @@
           <input type="text" [(ngModel)]="newTransaction.description" placeholder="Ex: Mercado, Aluguel...">
         </div>
       </div>
+
+      <!-- Card Transaction Form -->
+      <div class="form-grid" *ngIf="transactionOrigin === 'CARD'">
+        <div class="form-group">
+          <label>Valor Total</label>
+          <div class="input-with-icon">
+            <span class="currency-prefix">R$</span>
+            <input type="number" [(ngModel)]="newCardTransaction.value" placeholder="0,00" step="0.01">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Cartão</label>
+          <select [(ngModel)]="newCardTransaction.cardId">
+            <option *ngFor="let card of creditCards" [value]="card.id">{{ card.cardName }} ({{ card.brand }})</option>
+            <option *ngIf="creditCards.length === 0" disabled>Nenhum cartão cadastrado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Parcelas</label>
+          <input type="number" [(ngModel)]="newCardTransaction.totalInstallments" min="1" max="48">
+        </div>
+
+        <div class="form-group">
+          <label>Categoria</label>
+          <select [(ngModel)]="newCardTransaction.categoryName">
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Descrição</label>
+          <input type="text" [(ngModel)]="newCardTransaction.description" placeholder="Ex: Compra online, Jantar...">
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="cancel-btn" (click)="closeModal()">Cancelar</button>
-      <button class="save-btn" (click)="createTransaction()" [disabled]="!newTransaction.value || !newTransaction.categoryName || isCreating">
+      
+      <!-- Bank Save Button -->
+      <button class="save-btn" *ngIf="transactionOrigin === 'BANK'" (click)="createTransaction()" 
+              [disabled]="!newTransaction.value || !newTransaction.categoryName || isCreating">
+        {{ isCreating ? 'Processando...' : 'Confirmar' }}
+      </button>
+
+      <!-- Card Save Button -->
+      <button class="save-btn" *ngIf="transactionOrigin === 'CARD'" (click)="createTransaction()" 
+              [disabled]="!newCardTransaction.value || !newCardTransaction.cardId || !newCardTransaction.categoryName || isCreating">
         {{ isCreating ? 'Processando...' : 'Confirmar' }}
       </button>
     </div>

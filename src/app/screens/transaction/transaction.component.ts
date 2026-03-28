@@ -7,7 +7,9 @@ import { AccountService } from '../../core/services/account.service';
 import { UserService, UserOutput } from '../../core/services/user.service';
 import { CategoryService, CategorySummaryOutput } from '../../core/services/category.service';
 import { TransactionService } from '../../core/services/transaction.service';
-import { TransactionItem, EBalanceOperation, EBankTransactionType, BankTransactionInput } from '../../core/models/transaction.model';
+import { CardService } from '../../core/services/card.service';
+import { TransactionItem, EBalanceOperation, EBankTransactionType, BankTransactionInput, CardTransactionInput } from '../../core/models/transaction.model';
+import { CreditCardOutput } from '../../core/models/card.model';
 
 @Component({
   selector: 'app-transaction',
@@ -26,9 +28,11 @@ export class TransactionComponent implements OnInit {
   
   transactions: TransactionItem[] = [];
   categories: string[] = [];
+  creditCards: CreditCardOutput[] = [];
   
   showModal = false;
   isCreating = false;
+  transactionOrigin: 'BANK' | 'CARD' = 'BANK';
 
   // Form Data
   newTransaction: Partial<BankTransactionInput> = {
@@ -36,6 +40,14 @@ export class TransactionComponent implements OnInit {
     value: 0,
     operation: EBalanceOperation.DEBIT,
     transactionType: EBankTransactionType.PIX,
+    description: ''
+  };
+
+  newCardTransaction: Partial<CardTransactionInput> = {
+    cardId: '',
+    categoryName: '',
+    value: 0,
+    totalInstallments: 1,
     description: ''
   };
 
@@ -48,6 +60,7 @@ export class TransactionComponent implements OnInit {
     private userService: UserService,
     private categoryService: CategoryService,
     private transactionService: TransactionService,
+    private cardService: CardService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -63,6 +76,7 @@ export class TransactionComponent implements OnInit {
       this.loadUserData();
       this.loadTransactions(selectedAccountId);
       this.loadCategories(selectedAccountId);
+      this.loadCreditCards(selectedAccountId);
     } else {
       this.loading = false;
       this.cdr.detectChanges();
@@ -110,6 +124,15 @@ export class TransactionComponent implements OnInit {
     });
   }
 
+  loadCreditCards(accountId: string): void {
+    this.cardService.listByAccount(accountId).subscribe({
+      next: (cards) => {
+        this.creditCards = cards;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
     this.cdr.detectChanges();
@@ -126,12 +149,23 @@ export class TransactionComponent implements OnInit {
 
   openModal(): void {
     this.showModal = true;
+    this.transactionOrigin = 'BANK';
+    const accountId = this.accountService.getSelectedAccount() || '';
+    
     this.newTransaction = {
-      accountId: this.accountService.getSelectedAccount() || '',
+      accountId: accountId,
       categoryName: this.categories[0] || '',
       value: 0,
       operation: EBalanceOperation.DEBIT,
       transactionType: EBankTransactionType.PIX,
+      description: ''
+    };
+
+    this.newCardTransaction = {
+      cardId: this.creditCards[0]?.id || '',
+      categoryName: this.categories[0] || '',
+      value: 0,
+      totalInstallments: 1,
       description: ''
     };
   }
@@ -141,7 +175,23 @@ export class TransactionComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  onOperationChange(): void {
+    if (this.newTransaction.operation === EBalanceOperation.CREDIT) {
+      this.newTransaction.categoryName = 'Depósitos';
+    } else if (this.newTransaction.categoryName === 'Depósitos') {
+      this.newTransaction.categoryName = this.categories.find(c => c !== 'Depósitos') || '';
+    }
+  }
+
   createTransaction(): void {
+    if (this.transactionOrigin === 'BANK') {
+      this.createBankTransaction();
+    } else {
+      this.createCardTransaction();
+    }
+  }
+
+  private createBankTransaction(): void {
     if (!this.newTransaction.categoryName || !this.newTransaction.value) return;
 
     this.isCreating = true;
@@ -155,6 +205,26 @@ export class TransactionComponent implements OnInit {
       error: (err) => {
         this.isCreating = false;
         this.error = 'Erro ao realizar transação.';
+        this.cdr.detectChanges();
+        setTimeout(() => this.error = null, 3000);
+      }
+    });
+  }
+
+  private createCardTransaction(): void {
+    if (!this.newCardTransaction.cardId || !this.newCardTransaction.categoryName || !this.newCardTransaction.value) return;
+
+    this.isCreating = true;
+    this.transactionService.createCardTransaction(this.newCardTransaction as CardTransactionInput).subscribe({
+      next: () => {
+        this.isCreating = false;
+        this.closeModal();
+        const accountId = this.accountService.getSelectedAccount();
+        if (accountId) this.loadTransactions(accountId);
+      },
+      error: (err) => {
+        this.isCreating = false;
+        this.error = 'Erro ao realizar transação no cartão.';
         this.cdr.detectChanges();
         setTimeout(() => this.error = null, 3000);
       }

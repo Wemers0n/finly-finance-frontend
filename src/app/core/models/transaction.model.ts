@@ -17,6 +17,7 @@ export interface TransactionItem {
   category: string;
   type: string;
   origin: string;
+  operation: string;
 }
 
 export interface MonthlyTransactionSummaryOutput {
@@ -36,6 +37,14 @@ export interface BankTransactionInput {
   value: number;
   operation: EBalanceOperation;
   transactionType: EBankTransactionType;
+  description: string;
+}
+
+export interface CardTransactionInput {
+  cardId: string;
+  categoryName: string;
+  value: number;
+  totalInstallments: number;
   description: string;
 }
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { BankTransactionInput, MonthlyTransactionSummaryOutput, TransactionOutput } from '../models/transaction.model';
+import { BankTransactionInput, CardTransactionInput, MonthlyTransactionSummaryOutput, TransactionOutput } from '../models/transaction.model';
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +41,12 @@ export class TransactionService {
 
   createBankTransaction(input: BankTransactionInput): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/bank`, input, { 
+      headers: this.getHeaders() 
+    });
+  }
+
+  createCardTransaction(input: CardTransactionInput): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/card`, input, { 
       headers: this.getHeaders() 
     });
   }
