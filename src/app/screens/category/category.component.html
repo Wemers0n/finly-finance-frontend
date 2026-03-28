@@ -3,7 +3,7 @@
   <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
     <div class="sidebar-header">
       <div class="logo">
-        <img src="/assets/logo.svg" alt="Finly Logo" class="sidebar-logo" *ngIf="!isSidebarCollapsed">
+        <img src="/assets/logo-finly.png" alt="Finly Logo" class="sidebar-logo" *ngIf="!isSidebarCollapsed">
         <span class="logo-icon" *ngIf="isSidebarCollapsed">F</span>
       </div>
       <button class="toggle-btn" (click)="toggleSidebar()">
@@ -38,9 +38,9 @@
           </a>
         </li>
         <li>
-          <a href="#" data-label="Relatórios">
-            <i class="bi bi-pie-chart"></i>
-            <span *ngIf="!isSidebarCollapsed">Relatórios</span>
+          <a routerLink="/cards" routerLinkActive="active" data-label="Cartões">
+            <i class="bi bi-credit-card"></i>
+            <span *ngIf="!isSidebarCollapsed">Meus Cartões</span>
           </a>
         </li>
         <li>
@@ -99,17 +99,18 @@
 
       <div class="categories-grid">
         <div class="category-group" *ngFor="let category of categories">
-          <div class="category-card" (click)="openDetailModal(category)">
+          <div class="category-card" (click)="openDetailModal(category)" [class.deposits-card]="category.name === 'Depósitos'">
             <div class="category-info">
               <div class="category-icon">
-                <i class="bi bi-tag-fill"></i>
+                <i class="bi" [class.bi-tag-fill]="category.name !== 'Depósitos'" [class.bi-cash-coin]="category.name === 'Depósitos'"></i>
               </div>
               <div class="category-details">
                 <h3>{{ category.name }}</h3>
-                <p>Total gasto: {{ category.totalSpent | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</p>
+                <p *ngIf="category.name !== 'Depósitos'">Total gasto: {{ category.totalSpent | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</p>
+                <p *ngIf="category.name === 'Depósitos'">Total recebido: {{ category.totalReceived | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</p>
               </div>
             </div>
-            <div class="category-actions">
+            <div class="category-actions" *ngIf="category.name !== 'Depósitos'">
               <button class="icon-btn" title="Editar">
                 <i class="bi bi-pencil"></i>
               </button>
@@ -151,8 +152,8 @@
   <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div class="header-info">
-        <div class="category-icon-large">
-          <i class="bi bi-tag-fill"></i>
+        <div class="category-icon-large" [class.deposits-icon]="selectedCategory?.name === 'Depósitos'">
+          <i class="bi" [class.bi-tag-fill]="selectedCategory?.name !== 'Depósitos'" [class.bi-cash-coin]="selectedCategory?.name === 'Depósitos'"></i>
         </div>
         <div>
           <h3>{{ selectedCategory?.name }}</h3>
@@ -165,8 +166,10 @@
     <div class="modal-body">
       <div class="summary-info">
         <div class="info-card">
-          <span>Total Gasto</span>
-          <strong>{{ selectedCategory?.totalSpent | currency:'BRL' }}</strong>
+          <span>{{ selectedCategory?.name === 'Depósitos' ? 'Total Recebido' : 'Total Gasto' }}</span>
+          <strong [class.text-success]="selectedCategory?.name === 'Depósitos'">
+            {{ (selectedCategory?.name === 'Depósitos' ? selectedCategory?.totalReceived : selectedCategory?.totalSpent) | currency:'BRL' }}
+          </strong>
         </div>
         <div class="info-card">
           <span>Transações</span>
@@ -190,8 +193,8 @@
               <span class="tx-date">{{ tx.date | date: 'dd/MM/yyyy HH:mm' }}</span>
             </div>
           </div>
-          <span class="tx-val" [ngClass]="tx.type === 'DEPOSIT' ? 'positive' : 'negative'">
-            {{ (tx.type === 'DEPOSIT' ? '' : '-') + (tx.value | currency:'BRL') }}
+          <span class="tx-val" [ngClass]="tx.operation === 'CREDIT' ? 'positive' : 'negative'">
+            {{ (tx.operation === 'CREDIT' ? '' : '-') + (tx.value | currency:'BRL':'symbol':'1.2-2':'pt-BR') }}
           </span>
         </div>
       </div>

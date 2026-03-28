@@ -6,6 +6,7 @@ export interface CategoryItem {
   id: string;
   name: string;
   totalSpent: number;
+  totalReceived: number;
 }
 
 export interface CategorySummaryOutput {
