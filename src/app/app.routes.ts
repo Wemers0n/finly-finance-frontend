@@ -6,6 +6,7 @@ import { AccountSelectionComponent } from './screens/account/account-selection/a
 import { DashboardComponent } from './screens/dashboard/dashboard.component';
 import { CategoryComponent } from './screens/category/category.component';
 import { TransactionComponent } from './screens/transaction/transaction.component';
+import { CardComponent } from './screens/card/card.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -15,6 +16,7 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent },
   { path: 'categories', component: CategoryComponent },
   { path: 'transactions', component: TransactionComponent },
+  { path: 'cards', component: CardComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];

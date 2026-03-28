@@ -38,9 +38,9 @@
           </a>
         </li>
         <li>
-          <a href="#" data-label="Relatórios">
-            <i class="bi bi-pie-chart"></i>
-            <span *ngIf="!isSidebarCollapsed">Relatórios</span>
+          <a routerLink="/cards" routerLinkActive="active" data-label="Cartões">
+            <i class="bi bi-credit-card"></i>
+            <span *ngIf="!isSidebarCollapsed">Meus Cartões</span>
           </a>
         </li>
         <li>
@@ -136,8 +136,8 @@
                 </div>
               </div>
               <div class="transaction-amount-date">
-                <span class="amount" [ngClass]="t.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
-                  {{ (t.type === 'DEPOSIT' ? '' : '-') + (t.value | currency:'BRL':'symbol':'1.2-2':'pt-BR') }}
+                <span class="amount" [ngClass]="t.operation === 'CREDIT' ? 'text-success' : 'text-danger'">
+                  {{ (t.operation === 'CREDIT' ? '' : '-') + (t.value | currency:'BRL':'symbol':'1.2-2':'pt-BR') }}
                 </span>
                 <span class="date">{{ t.date | date: 'dd/MM/yy' }}</span>
               </div>

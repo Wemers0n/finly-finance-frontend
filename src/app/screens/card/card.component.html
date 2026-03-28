@@ -1,0 +1,255 @@
+<div class="dashboard-container" [class.collapsed]="isSidebarCollapsed">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
+    <div class="sidebar-header">
+      <div class="logo">
+        <img src="/assets/logo-finly.png" alt="Finly Logo" class="sidebar-logo" *ngIf="!isSidebarCollapsed">
+        <span class="logo-icon" *ngIf="isSidebarCollapsed">F</span>
+      </div>
+      <button class="toggle-btn" (click)="toggleSidebar()">
+        <i class="bi" [class.bi-chevron-left]="!isSidebarCollapsed" [class.bi-chevron-right]="isSidebarCollapsed"></i>
+      </button>
+    </div>
+    
+    <nav>
+      <ul>
+        <li>
+          <a routerLink="/dashboard" routerLinkActive="active" data-label="Dashboard">
+            <i class="bi bi-speedometer2"></i>
+            <span *ngIf="!isSidebarCollapsed">Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a (click)="changeAccount()" class="clickable" data-label="Trocar Conta">
+            <i class="bi bi-bank"></i>
+            <span *ngIf="!isSidebarCollapsed">Trocar Conta</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/categories" routerLinkActive="active" data-label="Categorias">
+            <i class="bi bi-tags"></i>
+            <span *ngIf="!isSidebarCollapsed">Categorias</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/transactions" routerLinkActive="active" data-label="Transações">
+            <i class="bi bi-arrow-left-right"></i>
+            <span *ngIf="!isSidebarCollapsed">Transações</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/cards" routerLinkActive="active" data-label="Cartões">
+            <i class="bi bi-credit-card"></i>
+            <span *ngIf="!isSidebarCollapsed">Meus Cartões</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" data-label="Relatórios">
+            <i class="bi bi-pie-chart"></i>
+            <span *ngIf="!isSidebarCollapsed">Relatórios</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" data-label="Configurações">
+            <i class="bi bi-gear"></i>
+            <span *ngIf="!isSidebarCollapsed">Configurações</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button (click)="logout()" class="logout-btn" data-label="Sair">
+        <i class="bi bi-box-arrow-right"></i>
+        <span *ngIf="!isSidebarCollapsed">Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="header">
+      <div class="welcome">
+        <h2>Meus <span>Cartões de Crédito</span></h2>
+        <p>Gerencie seus limites e faturas.</p>
+      </div>
+      <div class="user-profile">
+        <div class="avatar">{{ userName.charAt(0).toUpperCase() }}</div>
+      </div>
+    </header>
+
+    <!-- Skeleton Loader -->
+    <ng-container *ngIf="loading">
+      <div class="dashboard-grid">
+        <section class="recent-transactions skeleton-section">
+          <div class="skeleton-header-line"></div>
+          <div class="skeleton-item" *ngFor="let i of [1,2,3]"></div>
+        </section>
+      </div>
+    </ng-container>
+
+    <div *ngIf="!loading && error" class="error-alert">
+      {{ error }}
+    </div>
+
+    <!-- Actual Content -->
+    <ng-container *ngIf="!loading && !error">
+      <div class="page-header">
+        <div class="stats">
+          <p>Total de Cartões: <strong>{{ cards.length }}</strong></p>
+        </div>
+        <button class="add-btn" (click)="openModal()">
+          <i class="bi bi-plus-lg"></i>
+          Novo Cartão
+        </button>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card-item" *ngFor="let card of cards" (click)="openDetailModal(card)">
+          <div class="card-visual" [ngClass]="card.brand.toLowerCase()">
+            <div class="card-header-visual">
+              <i class="bi" [ngClass]="getBrandIcon(card.brand)"></i>
+              <span class="brand-name">{{ card.brand }}</span>
+            </div>
+            <div class="card-number">**** **** **** ****</div>
+            <div class="card-footer-visual">
+              <span class="card-holder">{{ card.cardName }}</span>
+              <div class="card-dates">
+                <div>
+                  <span>Fechamento</span>
+                  <strong>Dia {{ card.closingDay }}</strong>
+                </div>
+                <div>
+                  <span>Vencimento</span>
+                  <strong>Dia {{ card.dueDay }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card-limit-info">
+            <div class="limit-header">
+              <span>Limite Utilizado</span>
+              <span>{{ getLimitPercentage(card) | number:'1.0-0' }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="getLimitPercentage(card)" [ngClass]="{'high-usage': getLimitPercentage(card) > 80}"></div>
+            </div>
+            <div class="limit-values">
+              <span class="used">{{ card.usedLimit | currency:'BRL' }}</span>
+              <span class="total">{{ card.cardLimit | currency:'BRL' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="cards.length === 0" class="no-data">
+          <i class="bi bi-credit-card-2-front"></i>
+          <p>Você ainda não cadastrou nenhum cartão de crédito.</p>
+        </div>
+      </div>
+    </ng-container>
+  </main>
+</div>
+
+<!-- Add Card Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Novo Cartão de Crédito</h3>
+      <button class="close-btn" (click)="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Nome do Cartão (Apelido)</label>
+          <input type="text" [(ngModel)]="newCard.cardName" placeholder="Ex: Nubank, Inter, Black...">
+        </div>
+
+        <div class="form-group">
+          <label>Bandeira</label>
+          <select [(ngModel)]="newCard.brand">
+            <option *ngFor="let brand of brands" [value]="brand">{{ brand }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Limite Total</label>
+          <div class="input-with-icon">
+            <span class="currency-prefix">R$</span>
+            <input type="number" [(ngModel)]="newCard.cardLimit" placeholder="0,00" step="0.01">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Dia do Fechamento</label>
+          <input type="number" [(ngModel)]="newCard.closingDay" min="1" max="31">
+        </div>
+
+        <div class="form-group">
+          <label>Dia do Vencimento</label>
+          <input type="number" [(ngModel)]="newCard.dueDay" min="1" max="31">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="cancel-btn" (click)="closeModal()">Cancelar</button>
+      <button class="save-btn" (click)="createCard()" [disabled]="!newCard.cardName || !newCard.cardLimit || isCreating">
+        {{ isCreating ? 'Salvando...' : 'Confirmar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Card Detail Modal -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-info">
+        <div class="card-icon-large" [ngClass]="selectedCard?.brand?.toLowerCase()">
+          <i class="bi" [ngClass]="getBrandIcon(selectedCard?.brand || '')"></i>
+        </div>
+        <div>
+          <h3>{{ selectedCard?.cardName }}</h3>
+          <p>{{ selectedCard?.brand }}</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeDetailModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="summary-info">
+        <div class="info-card">
+          <span>Limite Disponível</span>
+          <strong class="text-success">{{ selectedCard ? getAvailableLimit(selectedCard) : 0 | currency:'BRL' }}</strong>
+        </div>
+        <div class="info-card">
+          <span>Limite Utilizado</span>
+          <strong class="text-danger">{{ selectedCard?.usedLimit | currency:'BRL' }}</strong>
+        </div>
+        <div class="info-card">
+          <span>Fechamento</span>
+          <strong>Dia {{ selectedCard?.closingDay }}</strong>
+        </div>
+        <div class="info-card">
+          <span>Vencimento</span>
+          <strong>Dia {{ selectedCard?.dueDay }}</strong>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h4>Resumo do Cartão</h4>
+        <div class="detail-row">
+          <span>Limite Total</span>
+          <span>{{ selectedCard?.cardLimit | currency:'BRL' }}</span>
+        </div>
+        <div class="detail-row">
+          <span>Porcentagem de Uso</span>
+          <span>{{ selectedCard ? getLimitPercentage(selectedCard) : 0 | number:'1.1-1' }}%</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="close-modal-btn" (click)="closeDetailModal()">Fechar</button>
+    </div>
+  </div>
+</div>
