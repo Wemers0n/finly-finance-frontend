@@ -1,8 +1,5 @@
-# 💰 Finly Finance  
-### Plataforma de Gestão de Fluxo de Caixa
 
-O **Finly Finance** é uma aplicação desenvolvida para facilitar o gerenciamento financeiro pessoal ou profissional. Com uma interface intuitiva, permite controlar contas, cartões, categorias e transações em um único lugar.
-
+# Finly Finance | Plataforma de Gestão de Fluxo de Caixa
 ## Tecnologias
 - **Angular** (v21.x)
 - **TypeScript** (v5.9)
