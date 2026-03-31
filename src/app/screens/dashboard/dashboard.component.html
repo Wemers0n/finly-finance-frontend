@@ -84,9 +84,9 @@
           <div class="skeleton-header-line"></div>
           <div class="skeleton-item" *ngFor="let i of [1,2,3,4,5]"></div>
         </section>
-        <section class="quick-actions skeleton-section">
+        <section class="category-chart-section skeleton-section">
           <div class="skeleton-header-line"></div>
-          <div class="skeleton-btn" *ngFor="let i of [1,2,3]"></div>
+          <div class="skeleton-chart"></div>
         </section>
       </div>
     </ng-container>
@@ -145,15 +145,17 @@
           </div>
         </section>
 
-        <!-- Quick Actions / Mini Reports -->
-        <section class="quick-actions">
+        <!-- Category Spending Chart -->
+        <section class="category-chart-section">
           <div class="section-header">
-            <h3>Ações Rápidas</h3>
+            <h3>Gastos por Categoria</h3>
           </div>
-          <div class="action-buttons">
-            <button class="action-btn" routerLink="/transactions">Nova Transação</button>
-            <button class="action-btn">Meus Cartões</button>
-            <button class="action-btn" routerLink="/categories">Categorias</button>
+          <div class="chart-container">
+            <canvas baseChart
+              [data]="pieChartData"
+              [options]="pieChartOptions"
+              [type]="pieChartType">
+            </canvas>
           </div>
         </section>
       </div>

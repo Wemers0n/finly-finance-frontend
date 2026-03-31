@@ -1,16 +1,19 @@
 import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, isPlatformBrowser } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { AuthService } from '../../core/services/auth.service';
 import { AccountService } from '../../core/services/account.service';
 import { UserService, UserOutput } from '../../core/services/user.service';
 import { DashboardService } from '../../core/services/dashboard.service';
+import { CategoryService, CategorySummaryOutput } from '../../core/services/category.service';
 import { TransactionItem, MonthlyTransactionSummaryOutput } from '../../core/models/transaction.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, BaseChartDirective],
   providers: [CurrencyPipe, DatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -29,11 +32,57 @@ export class DashboardComponent implements OnInit {
     expenses: 0
   };
 
+  // Chart configuration
+  public pieChartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'right',
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'circle',
+          padding: 20,
+          font: {
+            size: 12,
+            weight: 'bold'
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const label = context.label || '';
+            const value = context.raw as number;
+            const total = (context.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            return `${label}: R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+  public pieChartData: ChartData<'pie', number[], string | string[]> = {
+    labels: [],
+    datasets: [{
+      data: [],
+      backgroundColor: [
+        '#38bdf8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
+        '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#06b6d4'
+      ],
+      hoverOffset: 4,
+      borderWidth: 0
+    }]
+  };
+  public pieChartType: ChartType = 'pie';
+
   constructor(
     private authService: AuthService,
     private accountService: AccountService,
     private userService: UserService,
     private dashboardService: DashboardService,
+    private categoryService: CategoryService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -87,11 +136,39 @@ export class DashboardComponent implements OnInit {
         this.summary.income = data.totalCredits;
         this.summary.expenses = data.totalDebits;
         this.recentTransactions = data.transactions.slice(0, 5);
+        this.loadCategoryChart(accountId);
+      },
+      error: (err) => {
+        this.error = 'Erro ao carregar dados do dashboard.';
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadCategoryChart(accountId: string): void {
+    this.categoryService.getCategories(accountId).subscribe({
+      next: (data: CategorySummaryOutput) => {
+        // Filtrar categorias com gastos > 0 e remover 'Depósitos'
+        const expenseCategories = data.categories
+          .filter(c => c.name !== 'Depósitos' && c.totalSpent > 0)
+          .sort((a, b) => b.totalSpent - a.totalSpent);
+
+        if (expenseCategories.length > 0) {
+          this.pieChartData.labels = expenseCategories.map(c => c.name);
+          this.pieChartData.datasets[0].data = expenseCategories.map(c => c.totalSpent);
+        } else {
+          // Fallback se não houver gastos
+          this.pieChartData.labels = ['Sem gastos'];
+          this.pieChartData.datasets[0].data = [1];
+          this.pieChartData.datasets[0].backgroundColor = ['#e5e7eb'];
+        }
+
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.error = 'Erro ao carregar dados do dashboard.';
+        console.error('Erro ao carregar resumo de categorias', err);
         this.loading = false;
         this.cdr.detectChanges();
       }
