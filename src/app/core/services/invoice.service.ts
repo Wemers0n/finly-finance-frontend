@@ -15,8 +15,8 @@ export class InvoiceService {
     return this.http.get<InvoiceOutput[]>(`${this.apiUrl}/card/${cardId}`);
   }
 
-  getCurrentMonthInvoices(accountId: string): Observable<InvoiceOutput[]> {
-    return this.http.get<InvoiceOutput[]>(`${this.apiUrl}/account/${accountId}/current-month`);
+  getOpenInvoices(accountId: string): Observable<InvoiceOutput[]> {
+    return this.http.get<InvoiceOutput[]>(`${this.apiUrl}/account/${accountId}/open`);
   }
 
   getById(invoiceId: string): Observable<InvoiceOutput> {

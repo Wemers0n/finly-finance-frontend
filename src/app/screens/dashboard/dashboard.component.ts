@@ -9,8 +9,10 @@ import { UserService, UserOutput } from '../../core/services/user.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { CategoryService, CategorySummaryOutput } from '../../core/services/category.service';
 import { CardService } from '../../core/services/card.service';
+import { InvoiceService } from '../../core/services/invoice.service';
 import { TransactionItem, MonthlyTransactionSummaryOutput } from '../../core/models/transaction.model';
 import { CreditCardOutput } from '../../core/models/card.model';
+import { InvoiceOutput } from '../../core/models/invoice.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,6 +38,7 @@ export class DashboardComponent implements OnInit {
   };
 
   cards: CreditCardOutput[] = [];
+  openInvoices: InvoiceOutput[] = [];
 
   public pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
@@ -43,13 +46,13 @@ export class DashboardComponent implements OnInit {
     plugins: {
       legend: {
         display: true,
-        position: 'right',
+        position: 'bottom',
         labels: {
           usePointStyle: true,
           pointStyle: 'circle',
-          padding: 20,
+          padding: 15,
           font: {
-            size: 12,
+            size: 11,
             weight: 'bold'
           }
         }
@@ -88,6 +91,7 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private categoryService: CategoryService,
     private cardService: CardService,
+    private invoiceService: InvoiceService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -103,6 +107,7 @@ export class DashboardComponent implements OnInit {
       this.loadUserData();
       this.loadDashboardData(selectedAccountId);
       this.loadCards(selectedAccountId);
+      this.loadInvoices(selectedAccountId);
     } else {
       this.loading = false;
       this.cdr.detectChanges();
@@ -167,6 +172,23 @@ export class DashboardComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  loadInvoices(accountId: string): void {
+    this.invoiceService.getOpenInvoices(accountId).subscribe({
+      next: (invoices: InvoiceOutput[]) => {
+        this.openInvoices = invoices;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.openInvoices = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  getCardName(cardId: string): string {
+    return this.cards.find(c => c.id === cardId)?.cardName || 'Cartão';
   }
 
   loadCategoryChart(accountId: string): void {

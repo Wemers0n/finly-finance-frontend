@@ -160,6 +160,35 @@
           <p>Nenhum cartão cadastrado</p>
         </div>
       </div>
+
+      <div class="invoices-card">
+        <div class="section-header">
+          <h3><i class="bi bi-receipt"></i> Faturas Abertas</h3>
+          <a routerLink="/cards" class="view-all">Ver Detalhes</a>
+        </div>
+
+        <div class="invoices-list" *ngIf="openInvoices.length > 0">
+          <div class="invoice-item" *ngFor="let invoice of openInvoices">
+            <div class="invoice-info">
+              <div class="invoice-icon">
+                <i class="bi bi-file-earmark-text"></i>
+              </div>
+              <div class="invoice-details">
+                <span class="card-name">{{ getCardName(invoice.cardId) }}</span>
+                <span class="invoice-date">Vence em: {{ invoice.dueDate | date: 'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+            <div class="invoice-values">
+              <span class="invoice-amount text-danger">{{ invoice.totalAmount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+              <span class="invoice-status">Aberta</span>
+            </div>
+          </div>
+        </div>
+        <div class="no-invoices" *ngIf="openInvoices.length === 0">
+          <i class="bi bi-check-circle"></i>
+          <p>Nenhuma fatura aberta encontrada</p>
+        </div>
+      </div>
     </section>
 
       <section class="bottom-grid">
