@@ -8,7 +8,9 @@ import { AccountService } from '../../core/services/account.service';
 import { UserService, UserOutput } from '../../core/services/user.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { CategoryService, CategorySummaryOutput } from '../../core/services/category.service';
+import { CardService } from '../../core/services/card.service';
 import { TransactionItem, MonthlyTransactionSummaryOutput } from '../../core/models/transaction.model';
+import { CreditCardOutput } from '../../core/models/card.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,7 +26,8 @@ export class DashboardComponent implements OnInit {
   isSidebarCollapsed = false;
   loading = true;
   error: string | null = null;
-  
+
+  accountsBalance: number = 0;
   recentTransactions: TransactionItem[] = [];
   summary = {
     balance: 0,
@@ -32,7 +35,8 @@ export class DashboardComponent implements OnInit {
     expenses: 0
   };
 
-  // Chart configuration
+  cards: CreditCardOutput[] = [];
+
   public pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
@@ -68,7 +72,7 @@ export class DashboardComponent implements OnInit {
     datasets: [{
       data: [],
       backgroundColor: [
-        '#38bdf8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
+        '#38bdf8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
         '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#06b6d4'
       ],
       hoverOffset: 4,
@@ -83,6 +87,7 @@ export class DashboardComponent implements OnInit {
     private userService: UserService,
     private dashboardService: DashboardService,
     private categoryService: CategoryService,
+    private cardService: CardService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -97,6 +102,7 @@ export class DashboardComponent implements OnInit {
       }
       this.loadUserData();
       this.loadDashboardData(selectedAccountId);
+      this.loadCards(selectedAccountId);
     } else {
       this.loading = false;
       this.cdr.detectChanges();
@@ -120,26 +126,43 @@ export class DashboardComponent implements OnInit {
     const today = new Date();
     const referenceMonth = today.toISOString().split('T')[0];
 
-    // Carregar saldo total da conta
-    this.accountService.listAccounts().subscribe({
-      next: (accounts) => {
-        const selectedAccount = accounts.find(acc => acc.id === accountId);
-        if (selectedAccount) {
-          this.summary.balance = selectedAccount.currentBalance;
-          this.cdr.detectChanges();
-        }
-      }
-    });
-
     this.dashboardService.getMonthlySummary(accountId, referenceMonth).subscribe({
       next: (data: MonthlyTransactionSummaryOutput) => {
         this.summary.income = data.totalCredits;
         this.summary.expenses = data.totalDebits;
-        this.recentTransactions = data.transactions.slice(0, 5);
+        this.summary.balance = data.monthlyBalance;
+        this.recentTransactions = data.transactions.slice(0, 6);
         this.loadCategoryChart(accountId);
       },
       error: (err) => {
         this.error = 'Erro ao carregar dados do dashboard.';
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.accountService.listAccounts().subscribe({
+      next: (accounts) => {
+        const selectedAccount = accounts.find(acc => acc.id === accountId);
+        this.accountsBalance = selectedAccount?.currentBalance || 0;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.accountsBalance = 0;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadCards(accountId: string): void {
+    this.cardService.listByAccount(accountId).subscribe({
+      next: (cards: CreditCardOutput[]) => {
+        this.cards = cards;
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cards = [];
         this.loading = false;
         this.cdr.detectChanges();
       }
@@ -149,19 +172,31 @@ export class DashboardComponent implements OnInit {
   loadCategoryChart(accountId: string): void {
     this.categoryService.getCategories(accountId).subscribe({
       next: (data: CategorySummaryOutput) => {
-        // Filtrar categorias com gastos > 0 e remover 'Depósitos'
         const expenseCategories = data.categories
           .filter(c => c.name !== 'Depósitos' && c.totalSpent > 0)
           .sort((a, b) => b.totalSpent - a.totalSpent);
 
         if (expenseCategories.length > 0) {
-          this.pieChartData.labels = expenseCategories.map(c => c.name);
-          this.pieChartData.datasets[0].data = expenseCategories.map(c => c.totalSpent);
+          this.pieChartData = {
+            labels: expenseCategories.map(c => c.name),
+            datasets: [{
+              ...this.pieChartData.datasets[0],
+              data: expenseCategories.map(c => c.totalSpent),
+              backgroundColor: [
+                '#38bdf8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+                '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#06b6d4'
+              ]
+            }]
+          };
         } else {
-          // Fallback se não houver gastos
-          this.pieChartData.labels = ['Sem gastos'];
-          this.pieChartData.datasets[0].data = [1];
-          this.pieChartData.datasets[0].backgroundColor = ['#e5e7eb'];
+          this.pieChartData = {
+            labels: ['Sem gastos'],
+            datasets: [{
+              ...this.pieChartData.datasets[0],
+              data: [1],
+              backgroundColor: ['#e5e7eb']
+            }]
+          };
         }
 
         this.loading = false;
@@ -173,6 +208,18 @@ export class DashboardComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  getTotalSpentOnCards(): number {
+    return this.cards.reduce((sum, card) => sum + card.usedLimit, 0);
+  }
+
+  getTotalAvailableLimit(): number {
+    return this.cards.reduce((sum, card) => sum + (card.cardLimit - card.usedLimit), 0);
+  }
+
+  getTotalLimit(): number {
+    return this.cards.reduce((sum, card) => sum + card.cardLimit, 0);
   }
 
   getTransactionIcon(type: string): string {
