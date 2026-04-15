@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BankAccountInput, BankAccountOutput } from '../models/auth.model';
 
@@ -11,23 +11,12 @@ export class AccountService {
 
   constructor(private http: HttpClient) {}
 
-  private getHeaders(): HttpHeaders {
-    let token = null;
-    if (typeof localStorage !== 'undefined') {
-      token = localStorage.getItem('token');
-    }
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
   createAccount(accountData: BankAccountInput): Observable<void> {
-    return this.http.post<void>(this.apiUrl, accountData, { headers: this.getHeaders() });
+    return this.http.post<void>(this.apiUrl, accountData);
   }
 
   listAccounts(): Observable<BankAccountOutput[]> {
-    return this.http.get<BankAccountOutput[]>(this.apiUrl, { headers: this.getHeaders() });
+    return this.http.get<BankAccountOutput[]>(this.apiUrl);
   }
 
   setSelectedAccount(accountId: string): void {

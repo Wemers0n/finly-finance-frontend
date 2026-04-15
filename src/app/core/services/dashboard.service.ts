@@ -12,24 +12,12 @@ export class DashboardService {
 
   constructor(private http: HttpClient) {}
 
-  private getHeaders(): HttpHeaders {
-    let token = null;
-    if (typeof localStorage !== 'undefined') {
-      token = localStorage.getItem('token');
-    }
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
   getMonthlySummary(accountId: string, referenceMonth: string): Observable<MonthlyTransactionSummaryOutput> {
     const params = new HttpParams()
       .set('accountId', accountId)
       .set('referenceMonth', referenceMonth);
     
     return this.http.get<MonthlyTransactionSummaryOutput>(`${this.apiUrl}/summary/monthly`, { 
-      headers: this.getHeaders(),
       params: params
     });
   }

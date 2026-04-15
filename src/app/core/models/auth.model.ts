@@ -12,6 +12,7 @@ export interface UserInput {
 
 export interface ResponseOutput {
   token: string;
+  refreshToken: string;
 }
 
 export enum EAccountType {
@@ -30,4 +31,5 @@ export interface BankAccountOutput {
   accountName: string;
   accountType: EAccountType;
   currentBalance: number;
+  monthlyBalance: number;
 }

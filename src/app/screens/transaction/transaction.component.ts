@@ -100,7 +100,6 @@ export class TransactionComponent implements OnInit {
     const today = new Date();
     const referenceMonth = today.toISOString().split('T')[0];
 
-    this.loading = true;
     this.transactionService.getMonthlySummary(accountId, referenceMonth).subscribe({
       next: (data) => {
         this.transactions = data.transactions;
@@ -200,7 +199,11 @@ export class TransactionComponent implements OnInit {
         this.isCreating = false;
         this.closeModal();
         const accountId = this.accountService.getSelectedAccount();
-        if (accountId) this.loadTransactions(accountId);
+        if (accountId) {
+          this.loading = true; // Aqui é seguro pois é uma ação do usuário
+          this.loadTransactions(accountId);
+          this.loadCategories(accountId);
+        }
       },
       error: (err) => {
         this.isCreating = false;
@@ -220,7 +223,11 @@ export class TransactionComponent implements OnInit {
         this.isCreating = false;
         this.closeModal();
         const accountId = this.accountService.getSelectedAccount();
-        if (accountId) this.loadTransactions(accountId);
+        if (accountId) {
+          this.loading = true; // Aqui é seguro pois é uma ação do usuário
+          this.loadTransactions(accountId);
+          this.loadCategories(accountId);
+        }
       },
       error: (err) => {
         this.isCreating = false;

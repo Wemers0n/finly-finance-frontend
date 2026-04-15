@@ -17,18 +17,7 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  private getHeaders(): HttpHeaders {
-    let token = null;
-    if (typeof localStorage !== 'undefined') {
-      token = localStorage.getItem('token');
-    }
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
   getCurrentUser(): Observable<UserOutput> {
-    return this.http.get<UserOutput>(`${this.apiUrl}/me`, { headers: this.getHeaders() });
+    return this.http.get<UserOutput>(`${this.apiUrl}/me`);
   }
 }

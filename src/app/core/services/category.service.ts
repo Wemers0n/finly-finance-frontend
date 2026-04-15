@@ -23,26 +23,12 @@ export class CategoryService {
 
   constructor(private http: HttpClient) {}
 
-  private getHeaders(): HttpHeaders {
-    let token = null;
-    if (typeof localStorage !== 'undefined') {
-      token = localStorage.getItem('token');
-    }
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
   getCategories(accountId: string): Observable<CategorySummaryOutput> {
-    return this.http.get<CategorySummaryOutput>(`${this.apiUrl}/${accountId}/summary`, {
-      headers: this.getHeaders()
-    });
+    return this.http.get<CategorySummaryOutput>(`${this.apiUrl}/${accountId}/summary`);
   }
 
   createCategory(accountId: string, name: string): Observable<string> {
     return this.http.post<string>(`${this.apiUrl}/${accountId}`, { name }, {
-      headers: this.getHeaders(),
       responseType: 'text' as 'json'
     });
   }

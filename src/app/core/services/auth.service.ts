@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { LoginInput, ResponseOutput, UserInput } from '../models/auth.model';
 
@@ -14,10 +14,7 @@ export class AuthService {
   login(credentials: LoginInput): Observable<ResponseOutput> {
     return this.http.post<ResponseOutput>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
-        if (response.token && typeof localStorage !== 'undefined') {
-          localStorage.setItem('token', response.token.toString());
-          localStorage.removeItem('selectedAccountId'); // Limpa qualquer conta anterior
-        }
+        this.saveTokens(response);
       })
     );
   }
@@ -25,17 +22,41 @@ export class AuthService {
   register(userData: UserInput): Observable<ResponseOutput> {
     return this.http.post<ResponseOutput>(`${this.apiUrl}/register`, userData).pipe(
       tap(response => {
-        if (response.token && typeof localStorage !== 'undefined') {
-          localStorage.setItem('token', response.token.toString());
-          localStorage.removeItem('selectedAccountId'); // Limpa qualquer conta anterior
-        }
+        this.saveTokens(response);
+      })
+    );
+  }
+
+  refreshToken(): Observable<ResponseOutput> {
+    const refreshToken = this.getRefreshToken();
+    return this.http.post<ResponseOutput>(`${this.apiUrl}/refresh?refreshToken=${refreshToken}`, {}).pipe(
+      tap(response => {
+        this.saveTokens(response);
       })
     );
   }
 
   logout(): void {
+    const token = this.getToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    
+    this.http.post(`${this.apiUrl}/logout`, {}, { headers }).subscribe();
+
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('selectedAccountId');
+    }
+  }
+
+  private saveTokens(response: ResponseOutput): void {
+    if (typeof localStorage !== 'undefined') {
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+      }
+      if (response.refreshToken) {
+        localStorage.setItem('refreshToken', response.refreshToken);
+      }
       localStorage.removeItem('selectedAccountId');
     }
   }
@@ -43,6 +64,13 @@ export class AuthService {
   getToken(): string | null {
     if (typeof localStorage !== 'undefined') {
       return localStorage.getItem('token');
+    }
+    return null;
+  }
+
+  getRefreshToken(): string | null {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('refreshToken');
     }
     return null;
   }
