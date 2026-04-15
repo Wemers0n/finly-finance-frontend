@@ -1,23 +1,7 @@
-@keyframes skeletonLoading {
-  0% { background-color: #f1f5f9; }
-  50% { background-color: #e2e8f0; }
-  100% { background-color: #f1f5f9; }
-}
+/* Skeleton Animations Moved to styles.scss */
 
 .skeleton-section {
-  .skeleton-header-line {
-    height: 1.5rem;
-    width: 40%;
-    border-radius: 0.375rem;
-    margin-bottom: 2rem;
-    animation: skeletonLoading 1.5s infinite ease-in-out;
-  }
-  .skeleton-item {
-    height: 4rem;
-    border-radius: 1rem;
-    margin-bottom: 1rem;
-    animation: skeletonLoading 1.5s infinite ease-in-out;
-  }
+  /* Skeleton section properties moved to styles.scss */
 }
 
 .dashboard-container {
@@ -304,9 +288,9 @@
     box-shadow: var(--shadow-md);
     transition: all var(--transition-normal);
 
-    &.mastercard { background: linear-gradient(135deg, #2d3436 0%, #000000 100%); }
-    &.visa { background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%); }
-    &.elo { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    &.mastercard { background: linear-gradient(135deg, #eb001b 0%, #f79e1b 100%); }
+    &.visa { background: linear-gradient(135deg, #1a1f71 0%, #0066b2 50%, #00a0dc 100%); }
+    &.elo { background: linear-gradient(135deg, #ff6b00 0%, #ff0000 50%, #ff6b00 100%); }
 
     &::after {
       content: '';
@@ -442,9 +426,9 @@
       font-size: 2rem;
       color: #ffffff;
       
-      &.mastercard { background: linear-gradient(135deg, #2d3436 0%, #000000 100%); }
-      &.visa { background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%); }
-      &.elo { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+      &.mastercard { background: linear-gradient(135deg, #eb001b 0%, #f79e1b 100%); }
+      &.visa { background: linear-gradient(135deg, #1a1f71 0%, #0066b2 50%, #00a0dc 100%); }
+      &.elo { background: linear-gradient(135deg, #ff6b00 0%, #ff0000 50%, #ff6b00 100%); }
     }
 
     .summary-info {
@@ -481,6 +465,36 @@
         span:first-child { color: var(--text-muted); }
         span:last-child { color: var(--text-main); }
         &:last-child { border-bottom: none; }
+      }
+    }
+
+    .card-actions-modal {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+
+      .action-btn-modal {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: 1rem;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        text-decoration: none;
+        font-size: 1rem;
+
+        &.invoices {
+          background-color: rgba(56, 189, 248, 0.1);
+          color: var(--primary-color);
+          &:hover { background-color: var(--primary-color); color: #ffffff; }
+        }
+
+        i { font-size: 1.25rem; }
       }
     }
   }

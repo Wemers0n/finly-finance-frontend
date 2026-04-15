@@ -246,6 +246,13 @@
           <span>{{ selectedCard ? getLimitPercentage(selectedCard) : 0 | number:'1.1-1' }}%</span>
         </div>
       </div>
+
+      <div class="card-actions-modal">
+        <button class="action-btn-modal invoices" [routerLink]="['/cards', selectedCard?.id, 'invoices']" (click)="closeDetailModal()">
+          <i class="bi bi-file-text"></i>
+          Ver Faturas e Histórico
+        </button>
+      </div>
     </div>
     
     <div class="modal-footer">
