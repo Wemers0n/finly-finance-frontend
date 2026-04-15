@@ -12,7 +12,7 @@ import { CardService } from '../../core/services/card.service';
 import { InvoiceService } from '../../core/services/invoice.service';
 import { TransactionItem, MonthlyTransactionSummaryOutput } from '../../core/models/transaction.model';
 import { CreditCardOutput } from '../../core/models/card.model';
-import { InvoiceOutput } from '../../core/models/invoice.model';
+import { InvoiceOutput, EInvoiceStatus } from '../../core/models/invoice.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -39,6 +39,8 @@ export class DashboardComponent implements OnInit {
 
   cards: CreditCardOutput[] = [];
   openInvoices: InvoiceOutput[] = [];
+  selectedInvoiceStatus: EInvoiceStatus = EInvoiceStatus.OPEN;
+  invoiceStatusOptions = EInvoiceStatus;
 
   public pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
@@ -175,7 +177,7 @@ export class DashboardComponent implements OnInit {
   }
 
   loadInvoices(accountId: string): void {
-    this.invoiceService.getOpenInvoices(accountId).subscribe({
+    this.invoiceService.getInvoicesByStatus(accountId, this.selectedInvoiceStatus).subscribe({
       next: (invoices: InvoiceOutput[]) => {
         this.openInvoices = invoices;
         this.cdr.detectChanges();
@@ -185,6 +187,15 @@ export class DashboardComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  changeInvoiceStatus(status: EInvoiceStatus): void {
+    if (this.selectedInvoiceStatus === status) return;
+    this.selectedInvoiceStatus = status;
+    const selectedAccountId = this.accountService.getSelectedAccount();
+    if (selectedAccountId) {
+      this.loadInvoices(selectedAccountId);
+    }
   }
 
   getCardName(cardId: string): string {

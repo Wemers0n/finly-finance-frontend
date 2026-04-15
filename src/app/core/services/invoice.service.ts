@@ -19,6 +19,10 @@ export class InvoiceService {
     return this.http.get<InvoiceOutput[]>(`${this.apiUrl}/account/${accountId}/open`);
   }
 
+  getInvoicesByStatus(accountId: string, status: string): Observable<InvoiceOutput[]> {
+    return this.http.get<InvoiceOutput[]>(`${this.apiUrl}/account/${accountId}/status/${status}`);
+  }
+
   getById(invoiceId: string): Observable<InvoiceOutput> {
     return this.http.get<InvoiceOutput>(`${this.apiUrl}/${invoiceId}`);
   }
