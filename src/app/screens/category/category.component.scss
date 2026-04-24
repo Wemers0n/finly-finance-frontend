@@ -299,6 +299,134 @@
         }
       }
 
+      .budget-section {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+
+        .budget-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+
+          .budget-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            i { color: var(--primary-color); font-size: 1.25rem; }
+          }
+
+          .budget-action-btn {
+            background: none;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.4rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+
+            &:hover { background-color: var(--primary-color); color: #ffffff; }
+          }
+        }
+
+        .budget-display {
+          .budget-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+
+            .stat-item {
+              display: flex;
+              flex-direction: column;
+              gap: 0.125rem;
+
+              .label { font-size: 0.625rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+              .value { font-size: 0.9375rem; font-weight: 800; color: var(--text-main); }
+            }
+          }
+
+          .progress-container {
+            height: 0.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+
+            .progress-bar {
+              height: 100%;
+              transition: width 0.5s ease;
+              &.bg-success { background-color: #10b981; }
+              &.bg-warning { background-color: #f59e0b; }
+              &.bg-danger { background-color: #ef4444; }
+            }
+          }
+
+          .budget-alert {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            margin: 0;
+
+            &.warning { color: #f59e0b; }
+          }
+        }
+
+        .budget-form {
+          .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+
+            .form-group {
+              display: flex;
+              flex-direction: column;
+              gap: 0.375rem;
+              label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+              input { padding: 0.625rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-weight: 600; }
+            }
+          }
+
+          .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+
+            button {
+              padding: 0.5rem 1.25rem;
+              border-radius: 0.5rem;
+              font-size: 0.8125rem;
+              font-weight: 700;
+              cursor: pointer;
+              transition: all var(--transition-fast);
+            }
+
+            .btn-cancel { background: none; border: 1px solid var(--border-color); color: var(--text-muted); }
+            .btn-save { background-color: var(--primary-color); border: none; color: #ffffff; &:disabled { opacity: 0.6; cursor: not-allowed; } }
+          }
+        }
+
+        .no-budget {
+          text-align: center;
+          padding: 1rem;
+          background-color: #f8fafc;
+          border-radius: 0.75rem;
+          p { margin: 0; font-size: 0.8125rem; color: var(--text-muted); font-weight: 500; }
+        }
+      }
+
       .transactions-list-container {
         max-height: 350px;
         overflow-y: auto;

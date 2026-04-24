@@ -177,6 +177,76 @@
         </div>
       </div>
 
+      <!-- Budget Section -->
+      <div class="budget-section" *ngIf="selectedCategory?.name !== 'Depósitos'">
+        <div class="budget-header">
+          <div class="budget-title">
+            <i class="bi bi-bullseye"></i>
+            <span>Orçamento Mensal</span>
+          </div>
+          <button class="budget-action-btn" (click)="toggleBudgetForm()" *ngIf="!showBudgetForm">
+            {{ selectedBudget ? 'Ajustar' : 'Configurar' }}
+          </button>
+        </div>
+
+        <!-- Budget Display -->
+        <div class="budget-display" *ngIf="selectedBudget && !showBudgetForm">
+          <div class="budget-stats">
+            <div class="stat-item">
+              <span class="label">Limite</span>
+              <span class="value">{{ selectedBudget.plannedAmount | currency:'BRL' }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="label">Disponível</span>
+              <span class="value" [class.text-danger]="selectedBudget.remainingAmount < 0">
+                {{ selectedBudget.remainingAmount | currency:'BRL' }}
+              </span>
+            </div>
+            <div class="stat-item">
+              <span class="label">Uso</span>
+              <span class="value">{{ selectedBudget.usagePercentage | number:'1.0-0' }}%</span>
+            </div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar" 
+                 [style.width.%]="selectedBudget.usagePercentage > 100 ? 100 : selectedBudget.usagePercentage"
+                 [ngClass]="{'bg-danger': selectedBudget.exceeded, 'bg-warning': selectedBudget.alertTriggered && !selectedBudget.exceeded, 'bg-success': !selectedBudget.alertTriggered}">
+            </div>
+          </div>
+          <p class="budget-alert" *ngIf="selectedBudget.exceeded">
+            <i class="bi bi-exclamation-triangle-fill"></i> Limite excedido!
+          </p>
+          <p class="budget-alert warning" *ngIf="selectedBudget.alertTriggered && !selectedBudget.exceeded">
+            <i class="bi bi-info-circle-fill"></i> Você atingiu {{ selectedBudget.alertPercentage }}% do limite.
+          </p>
+        </div>
+
+        <!-- Budget Form -->
+        <div class="budget-form" *ngIf="showBudgetForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Limite Mensal (R$)</label>
+              <input type="number" [(ngModel)]="budgetLimit" placeholder="0,00">
+            </div>
+            <div class="form-group">
+              <label>Alerta em (%)</label>
+              <input type="number" [(ngModel)]="budgetAlertPercentage" placeholder="80">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-cancel" (click)="toggleBudgetForm()">Cancelar</button>
+            <button class="btn-save" (click)="saveBudget()" [disabled]="isSavingBudget || budgetLimit <= 0">
+              {{ isSavingBudget ? 'Salvando...' : 'Salvar Orçamento' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- No Budget State -->
+        <div class="no-budget" *ngIf="!selectedBudget && !showBudgetForm">
+          <p>Nenhum orçamento configurado para esta categoria este mês.</p>
+        </div>
+      </div>
+
       <div class="transactions-list-container">
         <div *ngIf="getTransactionsByCategory(selectedCategory?.name || '').length === 0" class="no-tx">
           <i class="bi bi-inbox"></i>

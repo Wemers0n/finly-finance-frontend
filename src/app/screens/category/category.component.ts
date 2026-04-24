@@ -7,6 +7,8 @@ import { AccountService } from '../../core/services/account.service';
 import { UserService, UserOutput } from '../../core/services/user.service';
 import { CategoryService, CategoryItem, CategorySummaryOutput } from '../../core/services/category.service';
 import { TransactionService } from '../../core/services/transaction.service';
+import { BudgetService, BudgetInput, BudgetItem } from '../../core/services/budget.service';
+import { BudgetMonitoringService } from '../../core/services/budget-monitoring.service';
 import { TransactionItem } from '../../core/models/transaction.model';
 
 @Component({
@@ -31,8 +33,15 @@ export class CategoryComponent implements OnInit {
   showModal = false;
   showDetailModal = false;
   selectedCategory: CategoryItem | null = null;
+  selectedBudget: BudgetItem | null = null;
   newCategoryName = '';
   isCreating = false;
+
+  // Budget related
+  showBudgetForm = false;
+  budgetLimit = 0;
+  budgetAlertPercentage = 80;
+  isSavingBudget = false;
 
   constructor(
     private authService: AuthService,
@@ -40,6 +49,8 @@ export class CategoryComponent implements OnInit {
     private userService: UserService,
     private categoryService: CategoryService,
     private transactionService: TransactionService,
+    private budgetService: BudgetService,
+    private budgetMonitoringService: BudgetMonitoringService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -145,7 +156,77 @@ export class CategoryComponent implements OnInit {
   openDetailModal(category: CategoryItem): void {
     this.selectedCategory = category;
     this.showDetailModal = true;
+    this.loadBudgetForCategory(category);
     this.cdr.detectChanges();
+  }
+
+  loadBudgetForCategory(category: CategoryItem): void {
+    const selectedAccountId = this.accountService.getSelectedAccount();
+    if (!selectedAccountId) return;
+
+    const today = new Date();
+    const referenceMonth = today.toISOString().split('T')[0];
+
+    this.budgetMonitoringService.getCategoryMonitoring(selectedAccountId, category.name, referenceMonth).subscribe({
+      next: (data: BudgetItem) => {
+        this.selectedBudget = data;
+        if (this.selectedBudget) {
+          this.budgetLimit = this.selectedBudget.plannedAmount;
+          this.budgetAlertPercentage = this.selectedBudget.alertPercentage;
+        } else {
+          this.budgetLimit = 0;
+          this.budgetAlertPercentage = 80;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.selectedBudget = null;
+        this.budgetLimit = 0;
+        this.budgetAlertPercentage = 80;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleBudgetForm(): void {
+    this.showBudgetForm = !this.showBudgetForm;
+    this.cdr.detectChanges();
+  }
+
+  saveBudget(): void {
+    const selectedAccountId = this.accountService.getSelectedAccount();
+    if (!selectedAccountId || !this.selectedCategory) return;
+
+    const today = new Date();
+    const referenceMonth = today.toISOString().split('T')[0];
+
+    this.isSavingBudget = true;
+
+    const budgetData: BudgetInput = {
+      accountId: selectedAccountId,
+      categoryName: this.selectedCategory.name,
+      amountLimit: this.budgetLimit,
+      referenceMonth: referenceMonth,
+      alertPercentage: this.budgetAlertPercentage,
+      active: true
+    };
+
+    const request = this.selectedBudget 
+      ? this.budgetService.updateBudget(this.selectedBudget.budgetId, budgetData)
+      : this.budgetService.createBudget(budgetData);
+
+    request.subscribe({
+      next: () => {
+        this.isSavingBudget = false;
+        this.showBudgetForm = false;
+        this.loadBudgetForCategory(this.selectedCategory!);
+      },
+      error: (err) => {
+        this.isSavingBudget = false;
+        this.error = 'Erro ao salvar orçamento.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   closeDetailModal(): void {
