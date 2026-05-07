@@ -70,12 +70,24 @@ form {
     &:focus {
       background-color: #ffffff;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+      box-shadow: 0 0 0 4px rgba(0, 209, 255, 0.1);
     }
 
     &.invalid {
       border-color: var(--error-color);
       background-color: #fffafb;
+    }
+  }
+
+  .forgot-link {
+    text-align: right;
+    margin-top: 0.25rem;
+    a {
+      font-size: 0.75rem;
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      &:hover { text-decoration: underline; }
     }
   }
 

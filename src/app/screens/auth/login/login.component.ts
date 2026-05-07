@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -21,7 +21,8 @@ export class LoginComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private accountService: AccountService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -33,6 +34,8 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.loading = true;
       this.error = null;
+      this.cdr.detectChanges();
+      
       this.authService.login(this.loginForm.value).subscribe({
         next: () => {
           this.accountService.listAccounts().subscribe({
@@ -42,16 +45,19 @@ export class LoginComponent {
               } else {
                 this.router.navigate(['/account-setup']);
               }
+              this.cdr.detectChanges();
             },
             error: () => {
               // Se houver erro ao listar, vamos para o setup por segurança
               this.router.navigate(['/account-setup']);
+              this.cdr.detectChanges();
             }
           });
         },
         error: (err) => {
           this.error = 'Email ou senha inválidos';
           this.loading = false;
+          this.cdr.detectChanges();
         }
       });
     }

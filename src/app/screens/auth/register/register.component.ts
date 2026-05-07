@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -19,7 +19,8 @@ export class RegisterComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.registerForm = this.fb.group({
       firstname: ['', [Validators.required, Validators.maxLength(50)]],
@@ -33,13 +34,17 @@ export class RegisterComponent {
     if (this.registerForm.valid) {
       this.loading = true;
       this.error = null;
+      this.cdr.detectChanges();
+
       this.authService.register(this.registerForm.value).subscribe({
         next: () => {
           this.router.navigate(['/account-setup']);
+          this.cdr.detectChanges();
         },
         error: (err) => {
           this.error = 'Ocorreu um erro ao registrar. Tente novamente.';
           this.loading = false;
+          this.cdr.detectChanges();
         }
       });
     }

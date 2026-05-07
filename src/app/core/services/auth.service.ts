@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginInput, ResponseOutput, UserInput } from '../models/auth.model';
+import { LoginInput, AuthenticationResponse, UserInput, ForgotPasswordInput } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,25 +12,33 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  login(credentials: LoginInput): Observable<ResponseOutput> {
-    return this.http.post<ResponseOutput>(`${this.apiUrl}/login`, credentials).pipe(
+  login(credentials: LoginInput): Observable<AuthenticationResponse> {
+    return this.http.post<AuthenticationResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
         this.saveTokens(response);
       })
     );
   }
 
-  register(userData: UserInput): Observable<ResponseOutput> {
-    return this.http.post<ResponseOutput>(`${this.apiUrl}/register`, userData).pipe(
+  register(userData: UserInput): Observable<AuthenticationResponse> {
+    return this.http.post<AuthenticationResponse>(`${this.apiUrl}/register`, userData).pipe(
       tap(response => {
         this.saveTokens(response);
       })
     );
   }
 
-  refreshToken(): Observable<ResponseOutput> {
+  forgotPassword(data: ForgotPasswordInput): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/forgot-password`, data);
+  }
+
+  verifyEmail(email: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/forgot-password/verify-email`, { email });
+  }
+
+  refreshToken(): Observable<AuthenticationResponse> {
     const refreshToken = this.getRefreshToken();
-    return this.http.post<ResponseOutput>(`${this.apiUrl}/refresh?refreshToken=${refreshToken}`, {}).pipe(
+    return this.http.post<AuthenticationResponse>(`${this.apiUrl}/refresh`, { refreshToken }).pipe(
       tap(response => {
         this.saveTokens(response);
       })
@@ -50,7 +58,7 @@ export class AuthService {
     }
   }
 
-  private saveTokens(response: ResponseOutput): void {
+  private saveTokens(response: AuthenticationResponse): void {
     if (typeof localStorage !== 'undefined') {
       if (response.token) {
         localStorage.setItem('token', response.token);

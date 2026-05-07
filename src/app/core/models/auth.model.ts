@@ -10,9 +10,15 @@ export interface UserInput {
   password: string;
 }
 
-export interface ResponseOutput {
+export interface AuthenticationResponse {
   token: string;
   refreshToken: string;
+}
+
+export interface ForgotPasswordInput {
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export enum EAccountType {
