@@ -16,10 +16,6 @@ export class InvoiceService {
     return this.http.get<InvoiceOutput[]>(`${this.apiUrl}/card/${cardId}`);
   }
 
-  getOpenInvoices(accountId: string): Observable<InvoiceOutput[]> {
-    return this.http.get<InvoiceOutput[]>(`${this.apiUrl}/account/${accountId}/open`);
-  }
-
   getInvoicesByStatus(accountId: string, status: string): Observable<InvoiceOutput[]> {
     return this.http.get<InvoiceOutput[]>(`${this.apiUrl}/account/${accountId}/status/${status}`);
   }

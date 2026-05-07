@@ -13,6 +13,8 @@ import { InvoiceService } from '../../core/services/invoice.service';
 import { TransactionItem, MonthlyTransactionSummaryOutput } from '../../core/models/transaction.model';
 import { CreditCardOutput } from '../../core/models/card.model';
 import { InvoiceOutput, EInvoiceStatus } from '../../core/models/invoice.model';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -106,87 +108,95 @@ export class DashboardComponent implements OnInit {
         this.router.navigate(['/account-selection']);
         return;
       }
-      this.loadUserData();
-      this.loadDashboardData(selectedAccountId);
-      this.loadCards(selectedAccountId);
-      this.loadInvoices(selectedAccountId);
+      this.loadAllData(selectedAccountId);
     } else {
       this.loading = false;
-      this.cdr.detectChanges();
     }
   }
 
-  loadUserData(): void {
-    this.userService.getCurrentUser().subscribe({
-      next: (user: UserOutput) => {
-        this.userName = user.firstname;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.userName = 'Usuário';
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  loadDashboardData(accountId: string): void {
+  loadAllData(accountId: string): void {
+    this.loading = true;
     const today = new Date();
     const referenceMonth = today.toISOString().split('T')[0];
 
-    this.dashboardService.getMonthlySummary(accountId, referenceMonth).subscribe({
-      next: (data: MonthlyTransactionSummaryOutput) => {
-        this.summary.income = data.totalCredits;
-        this.summary.expenses = data.totalDebits;
-        this.summary.balance = data.monthlyBalance;
-        this.recentTransactions = data.transactions.slice(0, 6);
-        this.loadCategoryChart(accountId);
+    forkJoin({
+      user: this.userService.getCurrentUser().pipe(catchError(() => of(null))),
+      summary: this.dashboardService.getMonthlySummary(accountId, referenceMonth).pipe(catchError(() => of(null))),
+      accounts: this.accountService.listAccounts().pipe(catchError(() => of([]))),
+      cards: this.cardService.listByAccount(accountId).pipe(catchError(() => of([]))),
+      invoices: this.invoiceService.getInvoicesByStatus(accountId, this.selectedInvoiceStatus).pipe(catchError(() => of([]))),
+      categories: this.categoryService.getCategories(accountId).pipe(catchError(() => of(null)))
+    }).subscribe({
+      next: (result) => {
+        // Process User
+        if (result.user) {
+          this.userName = result.user.firstname;
+        }
+
+        // Process Summary
+        if (result.summary) {
+          this.summary.income = result.summary.totalCredits;
+          this.summary.expenses = result.summary.totalDebits;
+          this.summary.balance = result.summary.monthlyBalance;
+          this.recentTransactions = result.summary.transactions.slice(0, 6);
+        }
+
+        // Process Accounts Balance
+        if (result.accounts) {
+          const selectedAccount = result.accounts.find(acc => acc.id === accountId);
+          this.accountsBalance = selectedAccount?.currentBalance || 0;
+        }
+
+        // Process Cards
+        this.cards = result.cards;
+
+        // Process Invoices
+        this.openInvoices = result.invoices;
+
+        // Process Categories (Chart)
+        if (result.categories) {
+          this.updateCategoryChart(result.categories);
+        }
+
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
+        console.error('Error loading dashboard data', err);
         this.error = 'Erro ao carregar dados do dashboard.';
         this.loading = false;
         this.cdr.detectChanges();
       }
     });
-
-    this.accountService.listAccounts().subscribe({
-      next: (accounts) => {
-        const selectedAccount = accounts.find(acc => acc.id === accountId);
-        this.accountsBalance = selectedAccount?.currentBalance || 0;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.accountsBalance = 0;
-        this.cdr.detectChanges();
-      }
-    });
   }
 
-  loadCards(accountId: string): void {
-    this.cardService.listByAccount(accountId).subscribe({
-      next: (cards: CreditCardOutput[]) => {
-        this.cards = cards;
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.cards = [];
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
+  updateCategoryChart(data: CategorySummaryOutput): void {
+    const expenseCategories = data.categories
+      .filter(c => c.name !== 'Depósitos' && c.totalSpent > 0)
+      .sort((a, b) => b.totalSpent - a.totalSpent);
 
-  loadInvoices(accountId: string): void {
-    this.invoiceService.getInvoicesByStatus(accountId, this.selectedInvoiceStatus).subscribe({
-      next: (invoices: InvoiceOutput[]) => {
-        this.openInvoices = invoices;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.openInvoices = [];
-        this.cdr.detectChanges();
-      }
-    });
+    if (expenseCategories.length > 0) {
+      this.pieChartData = {
+        labels: expenseCategories.map(c => c.name),
+        datasets: [{
+          ...this.pieChartData.datasets[0],
+          data: expenseCategories.map(c => c.totalSpent),
+          backgroundColor: [
+            '#38bdf8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+            '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#06b6d4'
+          ]
+        }]
+      };
+    } else {
+      this.pieChartData = {
+        labels: ['Sem gastos'],
+        datasets: [{
+          ...this.pieChartData.datasets[0],
+          data: [1],
+          backgroundColor: ['#e5e7eb']
+        }]
+      };
+    }
   }
 
   changeInvoiceStatus(status: EInvoiceStatus): void {
@@ -194,7 +204,16 @@ export class DashboardComponent implements OnInit {
     this.selectedInvoiceStatus = status;
     const selectedAccountId = this.accountService.getSelectedAccount();
     if (selectedAccountId) {
-      this.loadInvoices(selectedAccountId);
+      this.invoiceService.getInvoicesByStatus(selectedAccountId, this.selectedInvoiceStatus).subscribe({
+        next: (invoices: InvoiceOutput[]) => {
+          this.openInvoices = invoices;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.openInvoices = [];
+          this.cdr.detectChanges();
+        }
+      });
     }
   }
 
@@ -202,45 +221,16 @@ export class DashboardComponent implements OnInit {
     return this.cards.find(c => c.id === cardId)?.cardName || 'Cartão';
   }
 
-  loadCategoryChart(accountId: string): void {
-    this.categoryService.getCategories(accountId).subscribe({
-      next: (data: CategorySummaryOutput) => {
-        const expenseCategories = data.categories
-          .filter(c => c.name !== 'Depósitos' && c.totalSpent > 0)
-          .sort((a, b) => b.totalSpent - a.totalSpent);
-
-        if (expenseCategories.length > 0) {
-          this.pieChartData = {
-            labels: expenseCategories.map(c => c.name),
-            datasets: [{
-              ...this.pieChartData.datasets[0],
-              data: expenseCategories.map(c => c.totalSpent),
-              backgroundColor: [
-                '#38bdf8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-                '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#06b6d4'
-              ]
-            }]
-          };
-        } else {
-          this.pieChartData = {
-            labels: ['Sem gastos'],
-            datasets: [{
-              ...this.pieChartData.datasets[0],
-              data: [1],
-              backgroundColor: ['#e5e7eb']
-            }]
-          };
-        }
-
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Erro ao carregar resumo de categorias', err);
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
+  getTransactionIcon(type: string): string {
+    switch (type.toUpperCase()) {
+      case 'DEPOSIT': return 'bi-cash-coin';
+      case 'WITHDRAW': return 'bi-arrow-up-right-circle';
+      case 'TRANSFER': return 'bi-arrow-left-right';
+      case 'PAYMENT': return 'bi-credit-card';
+      case 'PIX': return 'bi-lightning-fill';
+      case 'CREDIT_CARD': return 'bi-credit-card-2-front-fill';
+      default: return 'bi-wallet2';
+    }
   }
 
   getTotalSpentOnCards(): number {
@@ -253,16 +243,6 @@ export class DashboardComponent implements OnInit {
 
   getTotalLimit(): number {
     return this.cards.reduce((sum, card) => sum + card.cardLimit, 0);
-  }
-
-  getTransactionIcon(type: string): string {
-    switch (type) {
-      case 'PIX': return 'bi-lightning-fill';
-      case 'TRANSFER': return 'bi-arrow-left-right';
-      case 'DEPOSIT': return 'bi-cash-coin';
-      case 'CREDIT_CARD': return 'bi-credit-card-2-front-fill';
-      default: return 'bi-wallet2';
-    }
   }
 
   toggleSidebar(): void {
